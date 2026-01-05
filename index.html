@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Portal - Final</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --green: #10b981;
+            --blue: #3b82f6;
+            --orange: #f59e0b;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 10px;
+            /* Reduced padding for mobile */
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            transition: max-width 0.3s ease;
+        }
+
+        .container.desktop-mode {
+            max-width: 95% !important;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+            letter-spacing: 2px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            background: var(--card-bg);
+            border: 2px solid #334155;
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-schedule {
+            background: var(--green);
+            color: white;
+        }
+
+        .btn-history {
+            background: var(--blue);
+            color: white;
+        }
+
+        .btn-forecast {
+            background: var(--purple);
+            color: white;
+        }
+
+        .btn-planner {
+            background: var(--orange);
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+
+        .result-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            /* Reduced padding */
+            display: none;
+            width: 100%;
+        }
+
+        .info-header {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--green);
+            border-bottom: 2px solid #334155;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .data-item {
+            margin-bottom: 20px;
+        }
+
+        .data-item h4 {
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+            /* Ensure table doesn't cramp too much */
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 8px;
+            background: #273549;
+            /* Matching header background look */
+            border: 1px solid #334155;
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            text-align: center;
+            /* Better alignment for columns */
+            border-bottom: 1px solid #334155;
+            white-space: nowrap;
+            /* Prevent text wrapping in cells */
+        }
+
+        th {
+            background: #334155;
+            font-weight: 600;
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .bg-green {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--green);
+        }
+
+        .bg-red {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .bg-orange {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--orange);
+        }
+
+        .bg-blue {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--blue);
+        }
+
+        .bg-muted {
+            background: rgba(148, 163, 184, 0.2);
+            color: var(--muted);
+        }
+
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .sub-text {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .forecast-grid {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .forecast-row {
+            display: grid;
+            grid-template-columns: 150px 1fr 100px;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .shift-cell {
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            transition: 0.2s;
+            user-select: none;
+        }
+
+        .shift-22 {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+
+        .shift-21 {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--blue);
+            border: 1px solid var(--blue);
+        }
+
+        .shift-off {
+            background: rgba(148, 163, 184, 0.2);
+            color: var(--muted);
+            border: 1px solid var(--muted);
+        }
+
+        .shift-ot {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--orange);
+            border: 1px solid var(--orange);
+        }
+
+        .shift-vacation {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--purple);
+            border: 1px solid var(--purple);
+        }
+
+        .shift-personal {
+            background: rgba(234, 179, 8, 0.2);
+            color: #eab308;
+            border: 1px solid #eab308;
+        }
+
+        .shift-sick {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .btn-back {
+            background: var(--danger);
+            margin-bottom: 15px;
+        }
+
+        .btn-save {
+            background: var(--green);
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .summary-box {
+            background: #334155;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .planner-table {
+            overflow-x: auto;
+        }
+
+        .planner-table table {
+            min-width: 800px;
+        }
+
+        .planner-table th {
+            font-size: 11px;
+            padding: 8px;
+        }
+
+        .planner-table td {
+            padding: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>WORK PORTAL</h2>
+        <input type="text" id="empId" placeholder="กรอกรหัสพนักงาน เช่น 400010">
+        <div class="btn-group">
+            <button class="btn-schedule" onclick="fetchData('schedule')">ดูตารางกะ</button>
+            <button class="btn-history" onclick="fetchData('history')">สรุปผลงาน</button>
+            <button class="btn-forecast" onclick="showForecast()">Forecast</button>
+            <button class="btn-planner" onclick="showPlanner()">จัดกะงาน</button>
+        </div>
+
+        <!-- Result Area (Original) -->
+        <div id="resultArea" class="result-card">
+            <div id="showName" class="info-header"></div>
+            <div id="contentDisplay"></div>
+        </div>
+
+        <!-- Forecast Area -->
+        <div id="forecastArea" class="result-card">
+            <button class="btn-back" onclick="hideForecast()">← กลับ</button>
+            <div class="info-header">📊 กรอกยอด Forecast</div>
+
+            <label style="color: var(--muted); margin-bottom: 5px; display: block;">เลือกวันที่เริ่มต้น
+                (จันทร์):</label>
+            <input type="date" id="forecastStartDate" onchange="generateForecastGrid()">
+
+            <div id="forecastGrid" class="forecast-grid"></div>
+
+            <button class="btn-save" onclick="saveForecast()">💾 บันทึก Forecast</button>
+        </div>
+
+        <!-- Planner Area -->
+        <div id="plannerArea" class="result-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <button class="btn-back" onclick="hidePlanner()" style="width:100px;">← กลับ</button>
+                <button onclick="toggleDesktopMode()"
+                    style="background:#475569; font-size:12px; padding:10px; width:150px;">💻 ปรับจอใหญ่</button>
+            </div>
+            <div class="info-header">📋 จัดตารางกะประจำสัปดาห์</div>
+
+            <label style="color: var(--muted); margin-bottom: 5px; display: block;">เลือกสัปดาห์ (วันจันทร์):</label>
+            <input type="date" id="plannerStartDate" onchange="loadPlannerData()">
+
+            <div id="plannerSummary"></div>
+            <div id="plannerGrid" class="planner-table"></div>
+
+            <button class="btn-save" onclick="saveSchedule()">💾 บันทึกตารางกะ</button>
+        </div>
+    </div>
+
+    <script>
+        // Google Apps Script URL
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyr48YAfXVYoQPlHC4a-i3_qeILPixoNb4adsKnQIzIMBPuC73V_P0bf-yOz8hW1a1n/exec';
+
+        const sheetId = '1hu0_rVLXEUyKeaauRir6RrPyh53f5n0FF6WHM2N7fl0';
+        const sheetGid1 = '0';
+        const sheetGid2 = '322099421';
+        const sheetGid3 = '1224676608';
+
+        let plannerStaff = [];
+        let plannerDates = [];
+        let forecastDates = [];
+
+        // ========== ORIGINAL FUNCTIONS (Keep as is) ==========
+
+        function fetchSheetDataJSONP(sheetId, gid) {
+            if (gid === 'YOUR_GID_HERE') return Promise.resolve(null);
+            return new Promise((resolve, reject) => {
+                const callbackName = 'sheet_callback_' + Math.floor(Math.random() * 1000000);
+                const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:${callbackName}&gid=${gid}`;
+
+                window[callbackName] = function (json) {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    resolve(transformGVizData(json));
+                };
+
+                const script = document.createElement('script');
+                script.src = url;
+                script.onerror = function () {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    reject(new Error('Failed to load data'));
+                };
+                document.body.appendChild(script);
+            });
+        }
+
+        function formatVal(val) {
+            if (!val) return '';
+            const dateMatch = String(val).match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?\)/);
+            if (dateMatch) {
+                const year = parseInt(dateMatch[1]);
+                const month = parseInt(dateMatch[2]) + 1;
+                const day = parseInt(dateMatch[3]);
+                const hour = dateMatch[4];
+                if (hour !== undefined) {
+                    return `${String(hour).padStart(2, '0')}:${String(dateMatch[5]).padStart(2, '0')}`;
+                }
+                return `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
+            }
+            return String(val);
+        }
+
+        function getThaiDay(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('/');
+            if (parts.length !== 3) return '';
+            const d = new Date(parts[2], parts[1] - 1, parts[0]);
+            const days = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+            return days[d.getDay()];
+        }
+
+        function transformGVizData(json) {
+            const table = json.table;
+            const headers = table.cols.map(col => (col.label || '').toLowerCase().replace(/\s+/g, '').trim());
+            let rows = table.rows;
+            let finalHeaders = headers;
+
+            if (!headers[0] || headers[0] === '') {
+                const firstRow = rows[0];
+                if (firstRow) {
+                    const firstRowValues = firstRow.c.map(cell => (cell && cell.v) ? String(cell.v).toLowerCase().replace(/\s+/g, '').trim() : '');
+
+                    if (firstRowValues.some(v => v.includes('employee') || v.includes('workdate') || v.includes('schedule'))) {
+                        finalHeaders = firstRowValues;
+                        rows = rows.slice(1);
+                    }
+                }
+            }
+
+            return rows.map(row => {
+                const obj = {};
+                row.c.forEach((cell, i) => {
+                    const raw = (cell && (cell.v !== null)) ? cell.v : '';
+                    const fmt = formatVal(raw);
+
+                    const h = finalHeaders[i];
+                    if (h) {
+                        obj[h] = fmt;
+                        obj[h + '_raw'] = raw;
+                    }
+
+                    obj['col' + i] = fmt;
+                });
+                return obj;
+            });
+        }
+
+        async function fetchData(type) {
+            const inputVal = document.getElementById('empId').value.trim();
+            if (!inputVal) return alert('กรุณากรอกรหัสพนักงาน');
+
+            try {
+                const scheduleData = await fetchSheetDataJSONP(sheetId, sheetGid1);
+                if (!scheduleData) return alert('ไม่สามารถดึงข้อมูลตารางกะได้');
+
+                const staffSchedule = scheduleData.filter(row => {
+                    const empId = row.employeeid || row.col1 || '';
+                    return empId.toString() === inputVal.toString();
+                });
+
+                if (staffSchedule.length === 0) {
+                    return alert('ไม่พบข้อมูลรหัส: ' + inputVal + ' ในตารางกะ');
+                }
+
+                const staffData = await fetchSheetDataJSONP(sheetId, sheetGid3);
+                const staffInfo = staffData.find(row => {
+                    const empId = row.employeeid || row.id || row.col0 || '';
+                    return empId.toString() === inputVal.toString();
+                });
+
+                const displayName = staffInfo ? (staffInfo.fullname || staffInfo.name || staffInfo.col1 || 'พนักงาน') : 'พนักงาน';
+                const nickname = staffInfo ? (staffInfo.nickname || staffInfo.col2 || '') : '';
+                const fullDisplayName = nickname ? `${displayName} (${nickname})` : displayName;
+
+                document.getElementById('resultArea').style.display = 'block';
+                document.getElementById('showName').innerText = `คุณ ${fullDisplayName} (${inputVal})`;
+
+                if (type === 'schedule') {
+                    let html = '<div class="data-item"><h4>📅 ตารางกะการทำงาน</h4><div class="table-responsive"><table>';
+                    staffSchedule.forEach(row => {
+                        const workdate = row.workdate || row.col2 || '';
+                        if (!workdate) return;
+                        const thaiDay = getThaiDay(workdate);
+                        const dateDisplay = `${workdate} <span style="color:var(--muted); font-size:12px">(${thaiDay})</span>`;
+                        const shift = row.scheduledshift || row.col3 || '-';
+                        html += `<tr><td>${dateDisplay}</td><td style="text-align:right; color:var(--green)">${shift}</td></tr>`;
+                    });
+                    document.getElementById('contentDisplay').innerHTML = html + '</table></div></div>';
+
+                } else {
+                    const scanData = await fetchSheetDataJSONP(sheetId, sheetGid2);
+                    if (!scanData) return alert('ไม่สามารถดึงข้อมูล Scan ได้');
+
+                    const staffScans = scanData.filter(row => {
+                        const empId = row.employeeid || row.col1 || '';
+                        return empId.toString() === inputVal.toString();
+                    });
+
+                    let html = `<div class="data-item">
+                        <h4>📊 สรุปการเข้า-ออก งาน</h4>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>วันที่</th>
+                                        <th>กะที่จัด</th>
+                                        <th>เวลาเข้า-ออก</th>
+                                        <th>ประเภทลา</th>
+                                        <th>OT วันหยุด</th>
+                                        <th>OT หลัง</th>
+                                        <th>สถานะ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+                    staffSchedule.forEach(sch => {
+                        const date = sch.workdate || sch.col2 || '';
+                        if (!date) return;
+
+                        const scan = staffScans.find(s => (s.workdate || s.col3) === date) || {};
+
+                        const shift1 = (sch.scheduledshift || sch.col3 || '-').trim();
+                        const shift2 = (scan.scheduletime || scan.col7 || '-').trim();
+                        const timeIn = scan.timein || scan.col9 || '-';
+                        const timeOut = scan.timeout || scan.col10 || '-';
+                        const dayType = (scan.daytype || scan.col6 || '').trim();
+                        const leaveType = scan.leavetype || scan.col19 || '-';
+                        const otHoliday = scan.otholiday || scan.col22 || '-';
+                        const otAfter = scan.otafter || scan.col23 || '-';
+
+                        let statusBadge = '';
+                        let note = '';
+
+                        const isDayOff = shift1.toLowerCase().includes('off') || shift1 === '-';
+                        const hasLeave = leaveType !== '-' && leaveType !== '';
+
+                        let isTypeMismatch = false;
+                        if (isDayOff) {
+                            if (dayType.toLowerCase() !== 'weekend') isTypeMismatch = true;
+                        } else {
+                            if (dayType.toLowerCase() !== 'working') isTypeMismatch = true;
+                        }
+
+                        if (isTypeMismatch) {
+                            statusBadge = `<span class="badge bg-orange">แจ้งแก้ไข</span>`;
+                            note = `<div class="sub-text">ประเภทวัน: ${dayType || '-'}</div>`;
+                        } else if (isDayOff) {
+                            statusBadge = `<span class="badge bg-muted">วันหยุด</span>`;
+                        } else if (hasLeave) {
+                            statusBadge = `<span class="badge bg-blue">ลา (${leaveType})</span>`;
+                        } else {
+                            const shiftMatch = (shift1 === shift2) || (shift2 !== '-' && shift2.startsWith(shift1));
+                            const hasIn = timeIn !== '-';
+                            const hasOut = timeOut !== '-';
+
+                            if (!shiftMatch && shift2 !== '-') {
+                                statusBadge = `<span class="badge bg-orange">กะไม่ตรง</span>`;
+                                note = `<div class="sub-text">ระบุ: ${shift2}</div>`;
+                            } else if (!hasIn && !hasOut) {
+                                statusBadge = `<span class="badge bg-red">ขาด/ไม่พบ</span>`;
+                            } else if (!hasIn || !hasOut) {
+                                statusBadge = `<span class="badge bg-orange">เวลาไม่ครบ</span>`;
+                            } else {
+                                statusBadge = `<span class="badge bg-green">ปกติ</span>`;
+                            }
+                        }
+
+                        const thaiDay = getThaiDay(date);
+                        html += `<tr>
+                            <td>
+                                <div>${date}</div>
+                                <div class="sub-text">${thaiDay}</div>
+                            </td>
+                            <td>${shift1}</td>
+                            <td>
+                                <div class="flex-col">
+                                    <span>${timeIn} - ${timeOut}</span>
+                                </div>
+                            </td>
+                            <td>${leaveType}</td>
+                            <td>${otHoliday}</td>
+                            <td>${otAfter}</td>
+                            <td style="text-align:center">
+                                <div class="flex-col" style="align-items:center">
+                                    ${statusBadge}
+                                    ${note}
+                                </div>
+                            </td>
+                        </tr>`;
+                    });
+
+                    document.getElementById('contentDisplay').innerHTML = html + '</tbody></table></div></div>';
+                }
+            } catch (e) {
+                console.error(e);
+                alert('เกิดข้อผิดพลาด: ' + e.message);
+            }
+        }
+
+        // ========== FORECAST FUNCTIONS ==========
+
+        function showForecast() {
+            const password = prompt('กรุณาใส่รหัสผ่านเพื่อเข้าใช้งาน:');
+            if (password !== '20260001') {
+                if (password !== null) alert('รหัสผ่านไม่ถูกต้อง!');
+                return;
+            }
+            hideAllAreas();
+            document.getElementById('forecastArea').style.display = 'block';
+
+            // Set default date to next Monday
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const daysUntilMonday = dayOfWeek === 0 ? 1 : (8 - dayOfWeek);
+            const nextMonday = new Date(today);
+            nextMonday.setDate(today.getDate() + daysUntilMonday);
+
+            document.getElementById('forecastStartDate').valueAsDate = nextMonday;
+            generateForecastGrid();
+        }
+
+        function hideForecast() {
+            document.getElementById('forecastArea').style.display = 'none';
+        }
+
+        function generateForecastGrid() {
+            const startDateInput = document.getElementById('forecastStartDate').value;
+            if (!startDateInput) return;
+
+            const startDate = new Date(startDateInput);
+            forecastDates = [];
+
+            let html = '';
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+
+                const dd = String(date.getDate()).padStart(2, '0');
+                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                const yyyy = date.getFullYear();
+                const dateStr = `${dd}/${mm}/${yyyy}`;
+                const thaiDay = getThaiDay(dateStr);
+
+                forecastDates.push(dateStr);
+
+                html += `
+                <div class="forecast-row">
+                    <div>${dateStr}</div>
+                    <input type="number" id="fc_${i}" placeholder="กรอกยอด Pack" style="margin:0;">
+                    <div class="sub-text">${thaiDay}</div>
+                </div>`;
+            }
+
+            document.getElementById('forecastGrid').innerHTML = html;
+            loadForecastData();
+        }
+
+        async function loadForecastData() {
+            if (GAS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
+
+            try {
+                const startDate = forecastDates[0];
+                const endDate = forecastDates[6];
+
+                const response = await fetch(`${GAS_URL}?action=getForecast&startDate=${startDate}&endDate=${endDate}`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    result.data.forEach(item => {
+                        const index = forecastDates.indexOf(item.date);
+                        if (index !== -1) {
+                            document.getElementById(`fc_${index}`).value = item.value;
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Load forecast error:', e);
+            }
+        }
+
+        async function saveForecast() {
+            if (GAS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                return alert('⚠️ กรุณาตั้งค่า Google Apps Script URL ก่อน\n\nดูวิธีการใน INSTALL_SCRIPT.md');
+            }
+
+            const forecasts = [];
+            for (let i = 0; i < 7; i++) {
+                const value = document.getElementById(`fc_${i}`).value;
+                if (!value) {
+                    return alert('กรุณากรอก Forecast ให้ครบทุกวัน');
+                }
+                forecasts.push({
+                    date: forecastDates[i],
+                    value: parseInt(value)
+                });
+            }
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'saveForecast',
+                        forecasts: forecasts
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('✅ บันทึก Forecast สำเร็จ!');
+                } else {
+                    alert('❌ เกิดข้อผิดพลาด: ' + result.message);
+                }
+            } catch (e) {
+                console.error('Save forecast error:', e);
+                alert('❌ ไม่สามารถบันทึกได้: ' + e.message);
+            }
+        }
+
+        // ========== PLANNER FUNCTIONS ==========
+
+        function showPlanner() {
+            const password = prompt('กรุณาใส่รหัสผ่านเพื่อเข้าใช้งาน:');
+            if (password !== '20260001') {
+                if (password !== null) alert('รหัสผ่านไม่ถูกต้อง!');
+                return;
+            }
+            hideAllAreas();
+            document.getElementById('plannerArea').style.display = 'block';
+
+            // Set default date to next Monday
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const daysUntilMonday = dayOfWeek === 0 ? 1 : (8 - dayOfWeek);
+            const nextMonday = new Date(today);
+            nextMonday.setDate(today.getDate() + daysUntilMonday);
+
+            document.getElementById('plannerStartDate').valueAsDate = nextMonday;
+            loadPlannerData();
+        }
+
+        function hidePlanner() {
+            document.getElementById('plannerArea').style.display = 'none';
+        }
+
+        async function loadPlannerData() {
+            const startDateInput = document.getElementById('plannerStartDate').value;
+            if (!startDateInput) return;
+
+            const startDate = new Date(startDateInput);
+            plannerDates = [];
+
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+
+                const dd = String(date.getDate()).padStart(2, '0');
+                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                const yyyy = date.getFullYear();
+                plannerDates.push(`${dd}/${mm}/${yyyy}`);
+            }
+
+            // Load staff
+            try {
+                const staffData = await fetchSheetDataJSONP(sheetId, sheetGid3);
+                plannerStaff = [];
+                const seen = new Set();
+
+                staffData.forEach(row => {
+                    const id = row.employeeid || row.id || row.col0 || '';
+                    const name = row.fullname || row.name || row.col1 || '';
+                    const nick = row.nickname || row.col2 || '';
+
+                    if (id && !seen.has(id)) {
+                        seen.add(id);
+                        plannerStaff.push({ id, name, nick });
+                    }
+                });
+
+                plannerStaff.sort((a, b) => a.id - b.id);
+
+                // Load forecast for summary
+                await loadForecastForPlanner();
+
+                // Load existing schedule if any
+                await loadExistingSchedule();
+
+                renderPlanner();
+            } catch (e) {
+                console.error('Load planner error:', e);
+                alert('โหลดข้อมูลไม่สำเร็จ: ' + e.message);
+            }
+        }
+
+        async function loadForecastForPlanner() {
+            if (GAS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
+
+            try {
+                const startDate = plannerDates[0];
+                const endDate = plannerDates[6];
+
+                const response = await fetch(`${GAS_URL}?action=getForecast&startDate=${startDate}&endDate=${endDate}`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const forecasts = result.data;
+                    let summaryHtml = '<div class="summary-box"><h4 style="margin-bottom:10px;">📊 สรุปความต้องการพนักงาน</h4>';
+
+                    plannerDates.forEach((date, i) => {
+                        const fc = forecasts.find(f => f.date === date);
+                        if (fc) {
+                            const needed = Math.ceil(fc.value / 435.28);
+                            const night21 = Math.round(needed * 0.25);
+                            const night22 = needed - night21;
+                            const dayOff = 34 - needed;
+
+                            const thaiDay = getThaiDay(date);
+                            summaryHtml += `
+                            <div class="summary-item">
+                                <span>${date} (${thaiDay})</span>
+                                <span>ต้องใช้: ${needed} คน | 21:00 (${night21}) | 22:00 (${night22}) | หยุด (${dayOff})</span>
+                            </div>`;
+                        }
+                    });
+
+                    summaryHtml += '</div>';
+                    document.getElementById('plannerSummary').innerHTML = summaryHtml;
+                }
+            } catch (e) {
+                console.error('Load forecast for planner error:', e);
+            }
+        }
+
+        async function loadExistingSchedule() {
+            if (GAS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
+
+            try {
+                const weekStart = plannerDates[0];
+                const response = await fetch(`${GAS_URL}?action=getSchedule&weekStart=${weekStart}`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    // Will be used in renderPlanner
+                    window.existingSchedule = result.data;
+                }
+            } catch (e) {
+                console.error('Load existing schedule error:', e);
+            }
+        }
+
+        function renderPlanner() {
+            let html = '<table><thead><tr><th style="width:150px;">พนักงาน</th>';
+
+            plannerDates.forEach(d => {
+                const thaiDay = getThaiDay(d);
+                html += `<th style="text-align:center">
+                    <div>${d.split('/')[0]}/${d.split('/')[1]}</div>
+                    <div class="sub-text">${thaiDay}</div>
+                </th>`;
+            });
+
+            html += '</tr></thead><tbody>';
+
+            plannerStaff.forEach(st => {
+                const displayName = st.nick ? `${st.name} (${st.nick})` : st.name;
+                html += `<tr>
+                    <td style="text-align:left;">
+                        <div style="font-weight:600; font-size:12px;">${displayName}</div>
+                        <div class="sub-text">${st.id}</div>
+                    </td>`;
+
+                plannerDates.forEach((d, i) => {
+                    // Check if existing schedule exists
+                    let defaultShift = '22:00';
+                    if (window.existingSchedule) {
+                        const existing = window.existingSchedule.find(s => s.employeeId === st.id && s.date === d);
+                        if (existing) defaultShift = existing.shift;
+                    }
+
+                    html += `<td>
+                        <div id="cell_${st.id}_${i}" class="shift-cell shift-${getShiftClass(defaultShift)}" onclick="toggleShift('${st.id}', ${i})" data-shift="${defaultShift}">
+                            ${defaultShift}
+                        </div>
+                    </td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            document.getElementById('plannerGrid').innerHTML = html;
+        }
+
+        function getShiftClass(shift) {
+            if (shift === '22:00') return '22';
+            if (shift === '21:00') return '21';
+            if (shift === 'Day Off') return 'off';
+            if (shift === 'OT') return 'ot';
+            if (shift === 'พักร้อน') return 'vacation';
+            if (shift === 'ลากิจ') return 'personal';
+            if (shift === 'ลาป่วย') return 'sick';
+            return '22';
+        }
+
+        function toggleShift(staffId, dayIdx) {
+            const cell = document.getElementById(`cell_${staffId}_${dayIdx}`);
+            const current = cell.getAttribute('data-shift');
+
+            const shifts = ['22:00', '21:00', 'Day Off', 'OT', 'พักร้อน', 'ลากิจ', 'ลาป่วย'];
+            const currentIndex = shifts.indexOf(current);
+            const nextIndex = (currentIndex + 1) % shifts.length;
+            const nextShift = shifts[nextIndex];
+
+            cell.setAttribute('data-shift', nextShift);
+            cell.innerText = nextShift;
+            cell.className = `shift-cell shift-${getShiftClass(nextShift)}`;
+        }
+
+        async function saveSchedule() {
+            if (GAS_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                return alert('⚠️ กรุณาตั้งค่า Google Apps Script URL ก่อน\n\nดูวิธีการใน INSTALL_SCRIPT.md');
+            }
+
+            const schedules = [];
+            plannerStaff.forEach(st => {
+                plannerDates.forEach((d, i) => {
+                    const cell = document.getElementById(`cell_${st.id}_${i}`);
+                    const shift = cell.getAttribute('data-shift');
+
+                    schedules.push({
+                        employeeId: st.id,
+                        date: d,
+                        shift: shift
+                    });
+                });
+            });
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'saveSchedule',
+                        weekStart: plannerDates[0],
+                        schedules: schedules
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('✅ บันทึกตารางกะสำเร็จ!');
+                } else {
+                    alert('❌ เกิดข้อผิดพลาด: ' + result.message);
+                }
+            } catch (e) {
+                console.error('Save schedule error:', e);
+                alert('❌ ไม่สามารถบันทึกได้: ' + e.message);
+            }
+        }
+
+        function hideAllAreas() {
+            document.getElementById('resultArea').style.display = 'none';
+            document.getElementById('forecastArea').style.display = 'none';
+            document.getElementById('plannerArea').style.display = 'none';
+        }
+
+        function toggleDesktopMode() {
+            document.querySelector('.container').classList.toggle('desktop-mode');
+        }
+    </script>
+</body>
+
+</html>
